@@ -3,12 +3,15 @@
 namespace App\Http\Controllers;
 
 use App\Models\Product;
+use App\Traits\CheckOwnership;
 use Illuminate\Http\Request;
 use Illuminate\Routing\Controllers\HasMiddleware;
 use Illuminate\Routing\Controllers\Middleware;
 
 class ProductController extends Controller implements HasMiddleware
 {
+
+    use CheckOwnership;
 
     /**
      * Get the middleware that should be assigned to the controller.
@@ -53,9 +56,7 @@ class ProductController extends Controller implements HasMiddleware
 
     public function update(Request $request, Product $product)
     {
-        if ($request->user()->id !== $product->user_id) {
-            return response()->json(['message' => 'Unauthorized'], 401);
-        }
+        $this->checkOwnership($request->user(), $product);
 
         $request->validate([
             'name' => 'string|max:255',
@@ -71,9 +72,7 @@ class ProductController extends Controller implements HasMiddleware
 
     public function destroy(Request $request, Product $product)
     {
-        if ($request->user()->id !== $product->user_id) {
-            return response()->json(['message' => 'Unauthorized'], 401);
-        }
+        $this->checkOwnership($request->user(), $product);
 
         $product->delete();
 
